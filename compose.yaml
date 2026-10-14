@@ -1,0 +1,65 @@
+# Settings shared by every collector. Each coin runs as its own service with its own EPOCH,
+# so its rows and health events never mix with another coin's in the report.
+x-arb: &arb
+  build: .
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+  # the app shuts down gracefully on SIGINT (records open episodes, flushes the backlog)
+  stop_signal: SIGINT
+  stop_grace_period: 20s
+  restart: unless-stopped
+
+x-db-url: &db-url postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+services:
+  #arb: # BASE_ASSET and EPOCH come from .env (BTC, run1)
+  #  <<: *arb
+  #  environment:
+  #    DATABASE_URL: *db-url
+
+  # Extra coins. Check each with `arb-pairs` and the OKX SG app first; delete a block to drop a coin.
+  arb-eth:
+    <<: *arb
+    environment:
+      DATABASE_URL: *db-url
+      BASE_ASSET: ETH
+      EPOCH: run2-eth
+
+  arb-sol:
+    <<: *arb
+    environment:
+      DATABASE_URL: *db-url
+      BASE_ASSET: SOL
+      EPOCH: run2-sol
+
+  arb-zec:
+    <<: *arb
+    environment:
+      DATABASE_URL: *db-url
+      BASE_ASSET: ZEC
+      EPOCH: run2-zec
+
+  arb-xrp:
+    <<: *arb
+    environment:
+      DATABASE_URL: *db-url
+      BASE_ASSET: XRP
+      EPOCH: run2-xrp
+
+  postgres:
+    image: postgres:18
+    env_file: .env
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

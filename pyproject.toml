@@ -1,0 +1,54 @@
+[project]
+name = "arb"
+version = "0.5.0"
+description = "Cross-exchange crypto arbitrage"
+readme = "README.md"
+authors = [
+  { name = "blobject", email = "agaric@pm.me" }
+]
+requires-python = ">=3.13"
+dependencies = [
+  "aiohttp>=3.14,<4",
+  "psycopg[binary,pool]>=3.3.6,<4",
+  "pydantic-settings>=2.14.2,<3",
+  "pyjwt[crypto]>=2.12.1,<3",
+  "websockets>=17.1,<18",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1.1,<10",
+  "pytest-asyncio>=1.4,<2",
+  "ruff>=0.16.4,<0.17",
+  "pyright[nodejs]>=1.1.411,<2",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
+
+[project.scripts]
+arb = "arb.main:run"
+arb-fees-cb = "arb.tools.fees_coinbase:cli"
+arb-pairs = "arb.tools.pairs:cli"
+arb-probe-cb = "arb.tools.probe_coinbase:cli"
+arb-probe-okx = "arb.tools.probe_okx:cli"
+arb-report = "arb.report:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+indent-width = 2
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
